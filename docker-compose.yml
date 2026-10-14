@@ -1,0 +1,36 @@
+services:
+  setup:
+    build: .
+    command: python train.py
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./mlruns:/app/mlruns
+  api:
+    build: .
+    command: uvicorn mlops_app.api:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+    environment:
+      DATA_DIR: /app/data
+      ARTIFACT_DIR: /app/artifacts
+      MLFLOW_TRACKING_URI: sqlite:////app/mlflow.db
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./mlflow.db:/app/mlflow.db
+      - ./mlruns:/app/mlruns
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+  dashboard:
+    build: .
+    command: streamlit run dashboard.py --server.address 0.0.0.0 --server.port 8501
+    ports: ["8501:8501"]
+    environment:
+      API_URL: http://api:8000
+    depends_on: [api]
+  mlflow-ui:
+    build: .
+    command: mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////app/mlflow.db
+    ports: ["5001:5000"]
+    volumes: ["./mlflow.db:/app/mlflow.db", "./mlruns:/app/mlruns"]
