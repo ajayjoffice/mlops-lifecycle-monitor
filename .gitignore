@@ -10,3 +10,4 @@ mlflow.db
 mlflow.db-*
 *.egg-info/
 .env
+.streamlit/secrets.toml

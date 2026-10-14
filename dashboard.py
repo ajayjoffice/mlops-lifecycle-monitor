@@ -6,10 +6,14 @@ import pandas as pd
 import requests
 import streamlit as st
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+try:
+    API_URL = st.secrets.get("API_URL", os.getenv("API_URL", "http://localhost:8000"))
+except FileNotFoundError:
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
 st.set_page_config(page_title="MLOps Monitor", page_icon="📈", layout="wide")
 st.title("Production ML Lifecycle Monitor")
 st.caption("Breast cancer classification · reference versus sample production data")
+st.info("Educational demo using a public dataset. This is not a medical tool or diagnosis.")
 
 try:
     health = requests.get(f"{API_URL}/health", timeout=3).json()

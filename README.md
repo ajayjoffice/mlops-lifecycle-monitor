@@ -63,6 +63,28 @@ For the MLflow UI outside Docker, run `mlflow ui --backend-store-uri sqlite:///m
 
 Training writes the model to `artifacts/model.joblib`, metrics metadata alongside it, and MLflow runs to the local SQLite database `mlflow.db` with artifacts under `mlruns/`. The reference and sample production CSVs are in `data/`.
 
+## Publish a shareable dashboard link
+
+The dashboard and API are separate services. For a public dashboard, deploy the FastAPI service first, then point the Streamlit app to its public URL. The dashboard reads `API_URL` from Streamlit secrets (or an environment variable); its local default is `http://localhost:8000`.
+
+### 1. Deploy the API
+
+This repository includes [`render.yaml`](render.yaml) for a Docker-based Render web service. In Render, create a new Blueprint from this GitHub repository and deploy `mlops-lifecycle-monitor-api`. The service trains the demo model at startup and exposes `/health`, `/monitoring`, and the prediction endpoints. Copy the resulting service URL, for example `https://your-api-name.onrender.com`.
+
+### 2. Deploy the dashboard
+
+1. Sign in at [Streamlit Community Cloud](https://share.streamlit.io/) with GitHub and choose **Create app**.
+2. Select this public repository, the `main` branch, and `dashboard.py` as the app file.
+3. In **Advanced settings → Secrets**, set the API base URL:
+
+   ```toml
+   API_URL = "https://your-api-name.onrender.com"
+   ```
+
+4. Deploy. Streamlit provides a public `*.streamlit.app` link. Updates pushed to the selected GitHub branch are reflected in the app.
+
+The dashboard link depends on the API staying reachable. A free hosting plan may sleep or have resource limits; the first request after idle time can take longer. The demo endpoint is public and has no authentication, so keep it limited to this educational dataset and do not send personal or medical data. Do not commit Streamlit secrets to GitHub.
+
 ## Try a prediction
 
 Use `GET /model` to see the required feature names. In the API docs, expand `POST /predict`, choose **Try it out**, and provide a JSON body in this shape:

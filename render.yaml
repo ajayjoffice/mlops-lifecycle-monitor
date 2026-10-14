@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mlops-lifecycle-monitor-api
+    runtime: docker
+    dockerCommand: python train.py && uvicorn mlops_app.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
